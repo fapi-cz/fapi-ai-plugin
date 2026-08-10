@@ -1,0 +1,20 @@
+{
+  "name": "fapi",
+  "interface": {
+    "displayName": "FAPI"
+  },
+  "plugins": [
+    {
+      "name": "fapi",
+      "source": {
+        "source": "local",
+        "path": "./plugins/fapi"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Business"
+    }
+  ]
+}

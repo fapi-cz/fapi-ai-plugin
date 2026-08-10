@@ -1,0 +1,34 @@
+{
+  "name": "fapi",
+  "version": "1.0.0",
+  "description": "Connect FAPI to Codex and Claude with OAuth-enabled MCP tools and reusable sales and billing workflows.",
+  "author": {
+    "name": "FAPI",
+    "url": "https://fapi.cz"
+  },
+  "repository": "https://github.com/fapi-cz/fapi-ai-plugin",
+  "keywords": [
+    "fapi",
+    "sales",
+    "billing",
+    "invoicing"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "FAPI",
+    "shortDescription": "Automate sales, billing, products, forms, and invoices in FAPI.",
+    "longDescription": "Connect to FAPI through OAuth and use guided workflows for account activation, billing, products, sales forms, email communication, upsells, and invoices.",
+    "developerName": "FAPI",
+    "category": "Business",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Activate my FAPI account for its first sale.",
+      "Create a FAPI product and sales form.",
+      "Create and verify a FAPI invoice."
+    ]
+  }
+}

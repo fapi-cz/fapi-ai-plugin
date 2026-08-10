@@ -1,0 +1,19 @@
+{
+  "name": "fapi",
+  "displayName": "FAPI",
+  "version": "1.0.0",
+  "description": "Connect FAPI to Codex and Claude with OAuth-enabled MCP tools and reusable sales and billing workflows.",
+  "author": {
+    "name": "FAPI",
+    "url": "https://fapi.cz"
+  },
+  "repository": "https://github.com/fapi-cz/fapi-ai-plugin",
+  "keywords": [
+    "fapi",
+    "sales",
+    "billing",
+    "invoicing"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json"
+}

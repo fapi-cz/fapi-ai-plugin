@@ -1,0 +1,15 @@
+{
+  "name": "fapi",
+  "owner": {
+    "name": "FAPI",
+    "url": "https://fapi.cz"
+  },
+  "description": "FAPI workflows and OAuth-enabled MCP tools for sales, billing, products, forms, and invoices.",
+  "plugins": [
+    {
+      "name": "fapi",
+      "source": "./plugins/fapi",
+      "description": "Connect FAPI to Codex and Claude with OAuth-enabled MCP tools and reusable sales and billing workflows."
+    }
+  ]
+}
