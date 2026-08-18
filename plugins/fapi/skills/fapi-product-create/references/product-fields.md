@@ -12,6 +12,11 @@ Use this reference before `item_templates_create` or `item_templates_update`.
       "type": "one_time",
       "currency_code": "CZK",
       "price": 1990
+    },
+    {
+      "type": "special_one_time",
+      "currency_code": "CZK",
+      "price": 997
     }
   ]
 }
@@ -23,7 +28,7 @@ Rules:
 * `prices` must contain at least one entry.
 * Each price needs `type`, `currency_code`, and `price`.
 * Use uppercase ISO 4217 currency codes.
-* `type` is `one_time` or `repayment`.
+* `type` is `one_time`, `special_one_time`, or `repayment`.
 * `repayment_count` is required by intent when `type` is `repayment`.
 
 ## Common fields
