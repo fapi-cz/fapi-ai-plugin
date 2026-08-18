@@ -165,6 +165,7 @@ For bank transfer or QR:
 2. Check that at least one set has a bank account for the intended currency.
 3. If missing and the user provided bank account data, create a set with `bank_account_sets_create`.
 4. If updating an existing set, inspect it first and send the complete `bank_accounts` list, preserving existing account IDs.
+5. Never create new bank account set, when you have more bank_accounts. Only when you want to create new bank account set is when you're creating new project. Only one back account set is default, other bank account sets MUST be assigned to a project. If bank account set is not default, or it is not assigned to a project, it will not be used for payment. If you want to use bank account set for payment, it must be default or assigned to a project.
 
 For online payments:
 

@@ -2,14 +2,6 @@
 
 Use this reference when source precedence or routing between skills matters.
 
-## Repository sources
-
-* `mcp/TOOLS.md` documents `users_update_billing_information`, `bank_account_sets_*`, `settings_*`, `payment_gateways_*`, product tools, and form tools.
-* `mcp/src/tools/users/usersParams.ts` defines billing-information update shape.
-* `mcp/src/tools/bankAccountSets/bankAccountSetsFields.ts` defines bank-account set validation.
-* `mcp/src/tools/settings/settingsFields.ts` defines settings validation.
-* `mcp/src/tools/paymentGateways/paymentGatewaysFields.ts` defines payment gateway filters.
-
 ## Related skills
 
 * `fapi-product-create` — create or update catalog products.
