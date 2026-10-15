@@ -29,6 +29,14 @@ Preserve account messages, reminders, terms, GDPR, project, and series. Do not r
 
 If fulfillment is requested and a valid message/file/member-section dependency is available, trigger it on `paid` or `item-paid`, not merely `ordered`.
 
+### Bounded Czech preparation prompt
+
+> Na mém testovacím účtu [název a ID účtu] připrav produkt „E-book – Základy fotografování“ za konečných 490 CZK včetně případné DPH a formulář „Objednávka – E-book Základy fotografování“. Nejdřív ověř identitu účtu přes MCP a také v UI; při neshodě nebo nedostupném přihlášení nic nezapisuj. DPH převezmi z ověřeného nastavení účtu, typ produktu je elektronická publikace, cena jednorázová a množství pevně 1. Nejdřív zkontroluj duplicity. Chci pouze bankovní převod v CZK, bez platební brány, splátek a předplatného. Ostatní nastavení, e-maily a právní texty ponech výchozí; právo na odstoupení nevypínej. Soubor ani způsob doručení zatím nemám připravený: doručování nenastavuj, jen vypiš, co musím dodat. Nevytvářej faktury ani objednávky, neodesílej formulář ani zprávy a nic neplať. Vrať ID produktu a formuláře, ověř uložená data a odděleně napiš, co bylo zkontrolováno v UI a které transakční a negativní testy nebyly provedeny.
+
+Replace the bracketed account identity before use; this is an example, not a tested write prompt. Resolve existing records first. For this explicit bank-transfer-only request, verify the CZK bank account, use `allow_wire: true`, `allow_gopay: false`, and `allow_qr_code_payment: false`; omit unrelated optional fields. A missing required bank dependency is a blocker to payment readiness, not permission to invent details or change account settings. If card payment is requested instead, resolve a compatible connected gateway; provider signup/approval and missing connections remain merchant/provider steps.
+
+Creating the catalog entry and form does not upload or deliver the e-book. Obtain the actual file, agreed hosting/access method and delivery message/integration before configuring delivery on `paid` or `item-paid`. Do not invent a download URL, file ID or template/connection ID. Without those dependencies, return a prepared configuration with delivery explicitly pending. Stored readback and non-submitting UI inspection do not prove successful payment, failed/unpaid-payment handling, or delivery; those need a separately authorized test plan.
+
 ## 2. Physical product
 
 ### Resolve

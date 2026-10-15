@@ -19,11 +19,7 @@ Use for online courses, recordings, templates, downloads, software access, and m
 
 Use `electronic-publication` for a one-time e-book or electronic publication.
 
-For `electronic-service` products, use `metadata.allow_contract_withdrawal: false` as the default unless the user says otherwise.
-
-For e-books and similar digital publications, use `metadata.allow_contract_withdrawal: false` as the default unless the user says otherwise.
-
-In both digital cases, mention that this default assumes the usual legal conditions for loss of the withdrawal right are met.
+For digital services and e-books, omit `metadata.allow_contract_withdrawal` to preserve the MCP default `true`. Set it to `false` only on an explicit, legally grounded instruction; a digital product name does not establish consent or a legal exclusion.
 
 ## Service
 
@@ -70,7 +66,7 @@ For foreign shipping, add customs metadata only when known:
 }
 ```
 
-If the product type is `food`, use `metadata.allow_contract_withdrawal: false` as the default only when the product is clearly perishable or has a short shelf life. Otherwise keep the field enabled unless the user says otherwise.
+If the product type is `food`, perishability or short shelf life may be relevant to a legal exception, but set `metadata.allow_contract_withdrawal: false` only on an explicit, legally grounded instruction. Otherwise omit the field to preserve its default.
 
 ## Live event
 
@@ -104,7 +100,7 @@ Use product periodicity only when the product itself should be periodic.
 
 Recurring billing still needs form configuration later.
 
-For recurring electronic publications and similar digital access, use `metadata.allow_contract_withdrawal: false` as the default unless the user says otherwise.
+For recurring electronic publications and similar digital access, also omit `metadata.allow_contract_withdrawal` unless an explicit, legally grounded instruction justifies an exemption.
 
 For non-digital product types, recurring access alone is not enough to disable `metadata.allow_contract_withdrawal`.
 
