@@ -191,11 +191,14 @@ Use cash on delivery only for physical fulfillment. Use cash only when an in-per
 
 #### Currency
 
-* Fixed currency: `currency_setting: always` plus `currency_code`.
-* Buyer choice: `currency_setting: choice` plus `allowed_currencies`.
-* Country-based selection: `currency_setting: by-country`.
+For a typical new form, use `currency_setting: by-country`. FAPI uses the buyer's billing country for the order and invoice. The built-in map uses CZK for Czechia and EUR for Slovakia and every other country. An account-specific currency map takes precedence.
 
-Use uppercase ISO 4217 codes. Check products, gateways, and bank accounts for every offered currency.
+Keep the billing country visible and required. With `by-country`, omit `currency_code` and `allowed_currencies`. A product price quoted in CZK can still use country-based checkout.
+
+* For an explicitly requested fixed currency, use `currency_setting: always` and `currency_code`.
+* If the user wants the buyer to choose, use `currency_setting: choice` and `allowed_currencies`.
+
+Use uppercase ISO 4217 codes. Check product prices and requested payment methods in each offered currency. Verify bank-account compatibility when bank transfer or QR payment is needed.
 
 #### Invoicing
 
@@ -301,7 +304,7 @@ Verify every applicable requirement:
 
 * Exact name and intended product IDs.
 * No item group with `allow_multiple_items: false` or omitted contains a child item with `required: true`.
-* Currency and product-price compatibility.
+* Stored currency mode, available product prices, and billing country visibility for `by-country`.
 * Requested payment methods are resolved and available.
 * Installment or recurring settings are internally consistent.
 * Buyer fields collect enough data without unnecessary friction.
@@ -344,7 +347,7 @@ Clearly separate completed configuration from external steps the tools cannot ex
 
 | User intent                                  | Interpretation                                                    | Configuration                                                                |
 |----------------------------------------------|-------------------------------------------------------------------|------------------------------------------------------------------------------|
-| “Vytvoř jednoduchý formulář pro produkt X”   | Minimal one-time checkout                                         | Resolve X, use `items`, inherit account defaults.                            |
+| “Vytvoř jednoduchý formulář pro produkt X”   | Minimal one-time checkout                                         | Resolve X, use `items`, prefer `by-country`, and inherit account defaults.                            |
 | “Chci platbu kartou”                         | Online checkout                                                   | Resolve gateway, enable gateway and card, verify resolved methods.           |
 | “Na 3 nebo 6 splátek”                        | Fixed installment choices                                         | `allow_repayments: true`, `repayment_counts: [3, 6]`.                        |
 | “Měsíční členství bez konce”                 | Indefinite recurring billing                                      | Monthly period, `end_by: none`.                                              |
@@ -434,7 +437,7 @@ A configuration check is not a transaction test. A real preview/order/payment te
 1. Search for the product.
 2. If missing, create a one-time CZK digital product.
 3. Check for an exact form-name collision.
-4. Create a one-product fixed-CZK form with inherited account defaults.
+4. Create a one-product form with `currency_setting: by-country` and inherited account defaults.
 5. Verify the form and resolved payment methods.
 
 ### Subscription with automatic card charging

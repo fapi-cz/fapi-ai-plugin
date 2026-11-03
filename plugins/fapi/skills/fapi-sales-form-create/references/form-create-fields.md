@@ -165,6 +165,8 @@ Do not override tax behavior without a clear requirement.
 | Buyer choice | `currency_setting: choice`, `allowed_currencies: ["CZK", "EUR"]` |
 | Fixed | `currency_setting: always`, `currency_code: "CZK"` |
 
+Use `by-country` for a typical new form. It is also the FAPI API default on create. FAPI uses the buyer's billing country. Czechia maps to CZK and Slovakia and other countries map to EUR under the built-in map. A custom account map takes precedence. Keep the billing country visible and omit `currency_code` and `allowed_currencies` in this mode.
+
 Currency codes must match `^[A-Z]{3}$`. Available payment methods and bank-account routing can differ by currency.
 
 ## Installments

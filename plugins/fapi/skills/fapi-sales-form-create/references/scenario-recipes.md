@@ -11,7 +11,7 @@ The user sells an e-book, recording, template, consultation, course, or other on
 ### Resolve
 
 * Existing product by exact name/code; create it only when name, price, and currency are known.
-* Fixed versus country-based currency from the request.
+* Any explicit checkout currency requirement. Otherwise use country-based currency.
 * Any explicitly requested payment gateway.
 
 ### Form shape
@@ -19,8 +19,7 @@ The user sells an e-book, recording, template, consultation, course, or other on
 ```json
 {
   "name": "Objednávka – Název produktu",
-  "currency_setting": "always",
-  "currency_code": "CZK",
+  "currency_setting": "by-country",
   "items": [{ "item_template_id": 123, "required": true }]
 }
 ```
@@ -227,9 +226,13 @@ Use `allow_multiple_items: true`. Keep the group optional unless at least one ad
 
 ## 10. Multiple currencies
 
+### Country-based currency
+
+Use `currency_setting: by-country` for a typical form and keep the billing country visible. The built-in map uses CZK for Czechia and EUR for Slovakia and other countries. A custom account map takes precedence.
+
 ### Fixed currency
 
-Prefer for a market-specific landing page:
+Use a fixed currency when the user asks to charge every order in that currency.
 
 ```json
 {
