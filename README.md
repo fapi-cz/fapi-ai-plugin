@@ -10,6 +10,7 @@ Authentication uses OAuth. The repository does not contain API tokens, usernames
 - `fapi-billing-setup` — configure billing identity, VAT, currency, invoice defaults, and bank accounts.
 - `fapi-default-notification-templates` — work safely with default notification and reminder templates.
 - `fapi-invoice-create` — create and verify invoices, proformas, simplified invoices, and credit notes.
+- `fapi-page-editor` — create and edit sales pages, reference styling, fonts, media, lines, and page elements.
 - `fapi-product-create` — create and update reusable product catalog items.
 - `fapi-sales-email-communication-create` — create email communication for a sales flow.
 - `fapi-sales-form-create` — create a complete FAPI sales form.
@@ -75,6 +76,10 @@ Confirm that `https://mcp.fapi.cz/mcp` is reachable and that the OAuth connectio
 ### An update is not visible
 
 Refresh the marketplace and update or reinstall the plugin with the commands above. Released changes must bump the version in both plugin manifests.
+
+## OpenAI-hosted skills for Fapilot
+
+Maintain Fapilot workflow instructions in `plugins/fapi/skills/`. Validate the skill, publish its bundle through the [OpenAI Skills API](https://developers.openai.com/cookbook/examples/skills_in_api), and verify the returned skill ID, version and content. Then prepare the Fapilot PR that registers that hosted skill ID. Keep credentials out of the bundle and repository. New workflow instructions do not belong in Fapilot's static `fapilot_instructions.md` or a duplicate static prompt.
 
 ## Contributor template
 
