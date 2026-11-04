@@ -1,0 +1,9 @@
+{
+  "fapi-account-activation": "skill_6a168e225d2881919209b97c9bc70ef60e425650f3d12eaa",
+  "fapi-ebook-delivery": "skill_6a168e18eeb481919b8ecf4359b461b5054a5ea85f3ef2a4",
+  "fapi-product-create": "skill_6a3a850aa07c8191b0a207f2bb93d1c90106992731bfdf5f",
+  "fapi-sales-form-create": "skill_6a168e0e548481918b429f2ffe937682047a9f2c07bec8d5",
+  "fapi-upsell-order-bump": "skill_6a168df0c8d88193aae808b73a2e55cd093801d1b45761c5",
+  "fapi-billing-setup": "skill_6a3a8525c8e0819196e3eecb7a314efa0499394bd8514aaa",
+  "fapi-invoice-create": "skill_6a3a85170754819196d18511df717d69012f9fd13321f2bf"
+}

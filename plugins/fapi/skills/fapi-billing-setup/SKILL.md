@@ -54,7 +54,7 @@ address.zip
 address.country_code
 ```
 
-`emails` is documented as required in `mcp/TOOLS.md`; include it when known.
+Preserve known `emails` and all other loaded billing fields when updating. A missing profile email is a basic-checklist gap, not a reason to block an independent VAT-mode write.
 
 ### Account settings
 
@@ -81,7 +81,7 @@ Some settings affect existing invoices or tax behavior. Treat them as guarded wr
 
 A bank account set groups bank accounts by currency. It can be used as an account default or assigned to projects/forms indirectly by existing FAPI configuration.
 
-On update, `bank_accounts` is a complete replacement list. Preserve existing bank-account IDs when keeping existing accounts.
+On update, nonempty `bank_accounts` upserts supplied entries by ID or set/currency. Omitted entries remain, but omitted details on a supplied entry may be cleared. Read and merge each existing entry, preserving its ID and fields.
 
 ## Procedure
 
@@ -104,6 +104,8 @@ Extract known values:
 * Whether the change is for a new account or an already active account.
 
 Ask one combined question only when a write cannot be done safely because required data is missing or ambiguous.
+
+During guided onboarding, explicitly supplied billing, VAT, and bank details are instructions to save them now, without another general confirmation. Complete independent writes while asking only for missing or contradictory data. Audit-only requests remain read-only; unrelated live changes and deletion keep their normal safeguards.
 
 ### 2. Inspect current state first
 
@@ -143,6 +145,8 @@ Rules:
 * Prefer `country_code`.
 * Do not invent `ic`, `dic`, `ic_dph`, `uk_vat_id`, phone, web, or file reference.
 * Preserve existing values unless the user clearly replaces them.
+* Read `users_show` and merge the complete identity/address payload. Do not send only the new name or VAT ID: omitted fields may be cleared.
+* Save a country change before the explicit VAT mode, because country changes can reset tax defaults. Restore an already stated mode after a later address/country update too.
 * Verify through the returned user or `users_show`.
 
 ### 4. Update settings carefully
@@ -153,6 +157,8 @@ Guarded setting rules:
 
 * `currency`: update only with explicit instruction; it can affect existing invoices and exchange rates.
 * `vat_mode` and `vat`: tax-sensitive; do not infer from product names or vague user wording.
+* In onboarding, “jsme plátci DPH” directly sets `vat_mode: vat-payer`, “jsem identifikovaná osoba” sets `identified-person`, and explicit non-payer status sets `non-vat-payer`. Specific identified-person wording wins over generic non-payer wording. Save the mode before dependent products; do not wait for a missing VAT ID or bank account when the mode write is independently valid.
+* A stated VAT mode does not supply a VAT ID or rate. Preserve the current recap method unless the user gives another one.
 * `payday` and `period_periodic`: use duration strings such as `14 days` or `1 months`.
 * Boolean keys must be actual booleans, not `"1"` or `"0"`.
 * `vat_recapitulation_algorithm` must be `default` or `pohoda`.
@@ -183,10 +189,12 @@ Rules:
 
 * Prefer `currency_code`.
 * Provide either `bank_account` or `iban`.
-* `iban` and `swift` must be provided together.
+* Preserve a known IBAN/SWIFT; do not require or invent SWIFT merely because an IBAN was supplied.
 * `bank_account_name` has a 35-character limit.
-* On update, inspect the existing set and send the complete desired `bank_accounts` list.
-* Preserve existing account IDs for accounts that should remain.
+* For onboarding, read `users_show.default_bank_account_set`, inspect it, and update that existing set. A new set does not become default merely by being created. If tools cannot assign a missing default, give Nastavení → Způsoby platby as the manual step; reserve new sets for an explicitly requested project/configuration.
+* Save a supplied CZK account immediately for CZK. An EUR product price is not a reason to reject or defer it or to speculate that EUR/SEPA payments cannot arrive.
+* Offer an additional EUR account afterward if useful; save both when supplied without replacing one with the other or duplicating an existing account.
+* For each updated account, merge all loaded details and preserve its ID. Other entries are not deleted by omission; deletion is a separate explicit operation.
 * Verify with `bank_account_sets_show`.
 
 ### 6. Check payment readiness without overclaiming
@@ -238,16 +246,16 @@ Changing `currency` can affect existing invoices and exchange rates. Do not upda
 
 Tax mode and VAT rate require explicit user data or existing account defaults. Ask instead of guessing.
 
-### Bank account update deletes accounts
+### Bank account update clears existing details
 
-Cause: `bank_account_sets_update` was sent with only the new account.
+Cause: a supplied existing bank-account entry omitted loaded fields such as IBAN, SWIFT, or display name.
 
 Resolution:
 
 1. Inspect the set with `bank_account_sets_show`.
-2. Merge the new/changed account into the complete list.
+2. Merge the new/changed account with its complete loaded record.
 3. Preserve `id` for unchanged existing accounts.
-4. Send the complete desired list and verify.
+4. Update the intended entries and verify the set, including unchanged accounts.
 
 ### QR payments are configured incompletely
 
@@ -294,9 +302,9 @@ Separate completed settings from manual checks and external setup.
 **Procedure**
 
 1. Inspect current settings and user.
-2. Ask for any missing required address/email fields.
-3. Update billing information.
-4. Update `vat_mode` and `vat` only when explicit.
+2. Save the explicit VAT mode immediately if address data is not ready; ask only for missing billing fields.
+3. Merge and update billing information when required fields are known.
+4. Save the explicit mode after a country update as well, and change `vat` only when supplied or already known.
 5. Verify.
 
 ### Bank account setup
@@ -308,7 +316,7 @@ Separate completed settings from manual checks and external setup.
 **Procedure**
 
 1. Inspect bank account sets.
-2. Create a new set or update the intended set.
+2. In onboarding, update the existing default set; do not create an unused set just to add an account.
 3. Preserve existing accounts on update.
 4. Verify the set and QR-related setting if requested.
 

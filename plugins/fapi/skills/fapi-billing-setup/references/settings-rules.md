@@ -38,6 +38,8 @@ Do not send string `"1"` or `"0"`.
 ## Guardrails
 
 * Do not change tax settings from vague wording.
+* During guided onboarding, explicit VAT-payer, identified-person, or non-payer status is an instruction to save the matching `vat_mode` now, without another confirmation. Do not hold it for a missing VAT ID or bank account when the write is valid independently. Audit-only requests do not authorize writes.
+* When billing country changes too, save it first and then the user's explicit VAT mode; a country update can reset defaults. Do not infer a VAT rate from the mode.
 * Do not change currency silently.
 * Do not change invoice email behavior without an explicit request.
 * Verify every changed setting with `settings_show` or a fresh `settings_list`.

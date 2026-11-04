@@ -53,7 +53,6 @@ Billing information identifies the seller on invoices. `users_update_billing_inf
 
 ```text
 name
-emails
 address.street
 address.city
 address.zip
@@ -97,6 +96,10 @@ Extract known values:
 
 Ask one combined question only when a write cannot be done safely because indispensable values are missing. Do not ask about optional polish.
 
+In guided onboarding, choosing to sell an e-book and then supplying its name, price, and currency is an instruction to create the product and its sales form. Continue without another general confirmation, unless the user explicitly wants only the product. Ask only about missing, unclear, unusual, or contradictory data; never substitute a missing price with zero or invent the currency.
+
+Save explicitly supplied billing details, VAT status, bank accounts, and product prices as they arrive. Complete independent writes even when another field is still missing. Use `fapi-billing-setup` to save the stated tax mode before creating dependent products. This onboarding permission does not cover deletion, customer messages, changes to ongoing payments, or unrelated live configuration. An audit-only request remains read-only.
+
 ### 2. Inspect account state
 
 Use read-only tools first:
@@ -136,6 +139,8 @@ Rules:
 * Prefer `country_code` over `country`.
 * Do not invent registration numbers, VAT IDs, phone, web, or file reference.
 * Preserve existing billing information unless the user clearly wants to change it.
+* Read `users_show` and merge the complete billing/address record before writing: omitted identity fields may be cleared. Preserve known emails too.
+* If changing country and VAT status together, save billing first and the explicit VAT mode second; a country change can reset tax defaults. Restore the stated mode after a later country update as well.
 * After update, verify using the returned user or `users_show`.
 
 ### 4. Treat account settings as guarded
@@ -155,17 +160,19 @@ Guarded settings include:
 
 Changing `currency` can affect existing invoices and exchange rates. Do not change it silently.
 
+During guided onboarding, “jsme plátci DPH” means save `vat_mode: vat-payer` now; “jsem identifikovaná osoba” means `identified-person`, and explicit non-payer status means `non-vat-payer`. The specific identified-person status wins over a simultaneous generic non-payer description. Do not wait for a missing VAT ID or bank account to save an independently valid mode; do not invent a VAT rate or ID.
+
 Read `references/account-fields.md` before updating settings, bank accounts, or payment readiness.
 
 ### 5. Ensure payment readiness
 
 For bank transfer or QR:
 
-1. Inspect `bank_account_sets_list`.
-2. Check that at least one set has a bank account for the intended currency.
-3. If missing and the user provided bank account data, create a set with `bank_account_sets_create`.
-4. If updating an existing set, inspect it first and send the complete `bank_accounts` list, preserving existing account IDs.
-5. Never create new bank account set, when you have more bank_accounts. Only when you want to create new bank account set is when you're creating new project. Only one back account set is default, other bank account sets MUST be assigned to a project. If bank account set is not default, or it is not assigned to a project, it will not be used for payment. If you want to use bank account set for payment, it must be default or assigned to a project.
+1. Read `users_show.default_bank_account_set` and inspect that set with `bank_account_sets_show`.
+2. Save supplied CZK account details immediately for CZK in that existing default set. Preserve loaded account IDs and fields; use `fapi-billing-setup` for the update contract.
+3. Do not create an unrelated set just to add another currency. If the default set is missing and tools cannot assign one, give the manual step in Nastavení → Způsoby platby instead of claiming a new set completes setup. A deliberately requested project-specific set is a separate task.
+4. An EUR product price is not a reason to reject or defer saving a CZK account. Do not infer that EUR/SEPA payments cannot arrive from the account currency alone or speculate about banking obstacles.
+5. After saving supplied data and preparing the product, offer an additional EUR account if useful: “Produkt máš i v EUR. Přidáme také EUR účet? Pošli mi ho.” Save both accounts if supplied, without replacing CZK with EUR.
 
 For online payments:
 
@@ -184,8 +191,10 @@ Minimum product data:
 
 * name,
 * price,
-* currency or known account default,
+* currency supplied or clearly expressed by the user,
 * product type or enough context to infer one safely.
+
+Infer type from the actual name, description, and delivery, ahead of the generic starter choice. Coaching cards are normally physical `good`; an explicit PDF/digital description takes precedence. Use one product with both CZK and EUR prices when both amounts are supplied. Adding EUR preserves CZK and every other existing price; it does not change account currency. Follow the product skill's read/merge/update procedure.
 
 Do not continue to form creation with an unknown product ID.
 
@@ -202,10 +211,13 @@ Minimum form outcome:
 
 If the product exists but the form is incomplete, let `fapi-sales-form-create` handle creation. If an existing form only needs an add-on, use `fapi-upsell-order-bump`.
 
+Once sufficient data is known, create the missing product and linked form immediately. Do not end with another offer to create them. Product-file upload is a separate manual step and does not block these writes; use the product skill's delivery guidance.
+
 ### 8. Publish and test
 
 Give the user the next operational steps:
 
+* Return the verified `form.url` immediately so the user can inspect the checkout. If only an ID was returned, load `forms_show`; never invent a URL.
 * Share or embed the form.
 * Run a test order in the FAPI preview/test flow.
 * Verify invoice creation, payment method display, email delivery, thank-you page, and fulfillment.
@@ -232,7 +244,7 @@ Configuration inspection is not a transaction test.
 
 Cause: billing identity requires seller data that cannot be inferred.
 
-Ask for the missing required fields together: seller name, billing email, street, city, ZIP, and country code.
+Ask only for the missing billing fields. First save independently valid VAT/account/product data already supplied; missing identity details do not justify merely acknowledging all other inputs without saving them.
 
 ### Bank transfer appears enabled but cannot be paid correctly
 
@@ -308,10 +320,10 @@ Clearly separate completed configuration from manual or external setup.
 **Procedure**
 
 1. Inspect account defaults and billing readiness.
-2. Ask for missing billing data if needed.
+2. Save supplied billing/VAT/account data and ask only for remaining required data without blocking independent writes.
 3. Use `fapi-product-create` for the e-book.
 4. Use `fapi-sales-form-create` for the checkout.
-5. Verify and return publish/test steps.
+5. Verify, return `form.url`, and give the upload/test steps without another general confirmation.
 
 ## Resources
 

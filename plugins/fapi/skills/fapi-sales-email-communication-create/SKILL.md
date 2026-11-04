@@ -58,6 +58,10 @@ Never hardcode order-specific values in email text. Order totals, due dates, pro
 
 Concrete fulfillment URLs supplied by the seller, such as ebook download pages, membership login pages, or consultation booking links, may be written as literal URLs because they are not order-specific values.
 
+For e-books and electronic materials, prefer files uploaded directly to the product in Prodej → Produkty → úprava produktu. FAPI makes purchased-product files available after payment of a non-cancelled order, on the order overview and in HTML email through `{items}` / `{itemsList}` or a separate `{downloads}` / `{downloadsList}` list. Select exact supported syntax from `notification_reference_show`. Do not require an external URL or add a second sending action when the paid email already provides those links.
+
+Current product MCP cannot upload or list attached files. Give the manual upload step and verify the email template and form assignment that tools can inspect; never claim the file is uploaded or delivery tested. Missing upload does not block creating the product, form, or a template with supported download placeholders, but it remains a pre-sale delivery task. Template attachments such as `{file:<id>}` are a different mechanism and require a verified file ID.
+
 When one email serves a mixed offer and some delivery content belongs only to an optional product, wrap that content in the product-conditional syntax returned by `notification_reference_show`: `{item-<item_code>}...{/item-<item_code>}`. Resolve the product with `item_templates_list` and confirm it with `item_templates_show`. Use its non-empty `code` in both tags; matching ignores letter case, but preserving the returned spelling prevents mistakes. Do not use an item template ID, invoice item ID, form item ID, miniupsell row ID, or guessed code, and do not nest product-conditional blocks. If the product has no code, update it with a unique code before using a conditional block.
 
 ## Procedure
@@ -78,7 +82,7 @@ Infer a set name when absent, for example `<product or form name>`. Do not block
 Ask one focused question only when a required business fact is missing and cannot be safely derived, for example:
 
 - The product or sales form is unclear.
-- An ebook or electronic product has no delivery link or attachment instructions.
+- The user explicitly needs an external delivery flow whose URL or instructions are missing; native product-file delivery alone does not require an external link.
 - A consultation offer has no booking link or clear next step.
 - A membership/access product has no clear access flow.
 - The seller signature is missing and no account/template source exposes it.
@@ -151,13 +155,13 @@ Apply product-specific rules:
 
 | Sale type                    | Required paid-email content                                                                                                 |
 | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Ebook or electronic product  | Include the seller-provided download URL, file placeholder, or delivery instructions.                                       |
+| Ebook or electronic product  | Prefer native product-file download placeholders and order overview; use an external URL or template attachment only when explicitly selected. |
 | Membership or access product | Explain that access details will arrive in a separate email. Ask the buyer to check the inbox, bulk mail, and spam folders. |
 | Consultation                 | Include the seller-provided consultation booking link or next-step instructions.                                            |
 | Service                      | Explain the next step agreed by the seller, such as scheduling, onboarding, or contact.                                     |
 | Physical product             | Mention delivery or shipping expectations only when the seller provided them or they are available from the form context.   |
 
-If the needed delivery information is missing, ask for it before writing the paid email.
+If an explicitly chosen external delivery flow lacks indispensable information, ask for that information. For native product-file delivery, prepare the supported placeholders and report the manual upload/verification step without blocking the other writes.
 
 ### 6. Update and verify templates
 

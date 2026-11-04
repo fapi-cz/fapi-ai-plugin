@@ -2,6 +2,16 @@
 
 Use this checklist for activation audits and final status reports.
 
+## Fapilot onboarding checklist and red basic settings
+
+In Fapilot's variant D, show only `checklist_basic_settings`, `checklist_product`, `checklist_form`, and `checklist_form_tested`; count completed flags out of four. Values `1`/`"1"` mean checked, `0`/`"0"` unchecked, and an absent flag is unverified. Gateways and bank import are not extra checklist items. Do not rewrite checklist flags; they may lag behind verified data.
+
+`checklist_basic_settings` is a stored flag, not the reason for a red state. Read `users_show`, `settings_list`, and the user's default bank account set. Its conditions are nonempty `ic` and `name`, at least one profile email, an existing address, a bank account in `default_bank_account_set`, and `vat_mode`. VAT payers and identified persons also need `dic` and `vat_recapitulation_algorithm` (`default` or `pohoda`, not a boolean).
+
+Explain only a missing condition proved by returned data. Logo, signature, sender name, and gateway connection are not conditions of this flag. Use Nastavení → Fakturační údaje for identity/contact/address, Nastavení → Způsoby platby for accounts, and Nastavení → Nastavení fakturace for VAT. Do not invent an E-maily / Odesílatel tab. If data is unavailable or complete despite a red flag, state that exact uncertainty instead of guessing a cause.
+
+Keep the basic flag distinct from overall sale readiness below. Configuration inspection does not prove test payment or delivery.
+
 ## Billing identity
 
 Ready when:
@@ -34,7 +44,7 @@ Do not change guarded defaults during a readiness audit.
 
 Inspect with `bank_account_sets_list`.
 
-Ready when at least one bank account set contains an account for the intended currency.
+Inspect the default or explicitly selected set, not an arbitrary unused set. Save supplied accounts before discussing remaining currency coverage; an EUR price does not block saving CZK details or prove a bank will reject EUR/SEPA payments.
 
 For QR readiness:
 
