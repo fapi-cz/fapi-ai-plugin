@@ -1,0 +1,37 @@
+---
+- name: Synchronize maintained FAPI skills to OpenAI
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    ansible_python_interpreter: "{{ ansible_playbook_python }}"
+  tasks:
+    - name: Compare skill bundles and publish changed versions
+      ansible.builtin.command:
+        argv:
+          - "{{ ansible_playbook_python }}"
+          - "{{ playbook_dir }}/../scripts/sync_openai_skills.py"
+          - "{{ '--check' if ansible_check_mode else '--apply' }}"
+      environment:
+        OPENAI_API_KEY: "{{ lookup('ansible.builtin.env', 'OPENAI_API_KEY') }}"
+        OPENAI_PROJECT_ID: "{{ lookup('ansible.builtin.env', 'OPENAI_PROJECT_ID') }}"
+        OPENAI_ORGANIZATION_ID: "{{ lookup('ansible.builtin.env', 'OPENAI_ORGANIZATION_ID') }}"
+      check_mode: false
+      changed_when: false
+      failed_when: false
+      no_log: true
+      register: skill_sync
+
+    - name: Read the credential-free synchronization report
+      ansible.builtin.set_fact:
+        skill_sync_report: "{{ skill_sync.stdout | from_json }}"
+
+    - name: Require successful synchronization
+      ansible.builtin.assert:
+        that: skill_sync.rc == 0
+        fail_msg: "{{ skill_sync_report.error | default('Skill synchronization failed') }}"
+
+    - name: Report skill IDs, versions and required Fapilot PRs
+      ansible.builtin.debug:
+        var: skill_sync_report
+      changed_when: skill_sync_report.changed

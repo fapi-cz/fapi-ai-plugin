@@ -33,9 +33,11 @@ Required:
 * `address.zip`
 * `address.country_code`
 
-`emails` is documented as required in `mcp/TOOLS.md`; include it when available and ask when absent for a billing-information write.
+Read `users_show` and merge the complete current billing/address data with supplied changes, including existing emails. Omitted identity fields may be cleared; do not send a partial name/VAT-ID update. Preserve omitted emails as well. Missing profile email is a checklist gap; it does not block an independent `settings_update`.
 
 Do not invent registration or VAT identifiers.
+
+If country and VAT mode change together, save billing first and the explicitly stated mode second, because country changes can reset defaults. Preserve that stated mode after later country updates.
 
 ## Bank account set
 
@@ -61,10 +63,10 @@ Rules:
 * Use `currency_code` when possible.
 * Each bank account needs `currency_code` or `currency_id`.
 * Each bank account needs `bank_account` or `iban`.
-* `iban` requires `swift`, and `swift` requires `iban`.
+* Preserve known IBAN/SWIFT; an IBAN alone is not a reason to require a missing SWIFT.
 * `bank_account_name` maximum is 35 characters.
-* Update replaces the complete `bank_accounts` list.
-* When updating, keep `id` on existing accounts that should remain.
+* In onboarding, update the set from `users_show.default_bank_account_set`. Creating another set does not assign it as default.
+* Nonempty `bank_accounts` upserts supplied entries by ID or set/currency. Omitted entries remain. A supplied entry's omitted name, local account number, IBAN, or SWIFT can be cleared, so merge the complete loaded entry and keep its `id`.
 
 ## Verification
 

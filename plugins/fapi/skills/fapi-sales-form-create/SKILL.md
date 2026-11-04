@@ -105,6 +105,8 @@ Ask one focused question only when creation is impossible without an indispensab
 
 Do not ask the user to choose every optional setting. Leave unspecified options at FAPI defaults.
 
+In guided first-sale onboarding, a starter choice followed by a clear product name, price, and currency authorizes the product and linked form. Create them without asking again whether to create either one, unless the user explicitly requested only a product. Ask only about missing or contradictory data. Use the product skill to infer the actual type and preserve additional currency prices; save explicitly stated VAT status through the billing skill before dependent creation.
+
 ### 2. Prevent duplicates
 
 1. Call `forms_list` with `search` set to the proposed name and a small `limit`.
@@ -282,6 +284,8 @@ Use payment events for fulfillment that must follow successful payment:
 
 Use `ordered` only when fulfillment may occur before payment. Configure an action only when every required ID or URL is verified.
 
+For e-books attached directly to a product, use the product skill's native download workflow and existing paid-email placeholders. Do not add a duplicate sending action or block form creation for a missing upload/external URL. Current product MCP cannot upload/list those files; give Prodej → Produkty → úprava produktu as the manual upload step and do not claim delivery has been tested.
+
 ### 6. Create exactly once
 
 Call `forms_create` with:
@@ -353,6 +357,8 @@ Respond in the user's language using only applicable sections:
 ```
 
 Clearly separate completed configuration from external steps the tools cannot execute or verify.
+
+Return the actual `form.url` immediately for inspection. If creation returned only an ID, obtain the detail with `forms_show`; never invent the link or end with another offer to create the form. When an EUR offer coexists with a supplied CZK account during onboarding, save CZK details first and offer adding an EUR account afterward through `fapi-billing-setup`. Report actual unresolved payment configuration without speculating that the bank rejects EUR/SEPA.
 
 ## Decision table
 

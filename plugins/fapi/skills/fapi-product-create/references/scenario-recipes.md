@@ -127,6 +127,8 @@ For ordinary sales-form installments, prefer a normal `one_time` product and con
 
 Use one price per intended currency.
 
+An added EUR amount normally supplements the same product's CZK price. For an update, load `item_templates_show`, merge the added price with every existing currency and price kind, and send the complete `prices` value. A partial nonempty list replaces the stored prices. Verify all prices afterward; do not change the account currency or guess a conversion.
+
 ```json
 {
   "prices": [

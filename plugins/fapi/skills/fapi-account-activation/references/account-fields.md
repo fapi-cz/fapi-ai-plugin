@@ -24,10 +24,11 @@ Tool: `users_update_billing_information`
 Rules:
 
 * `name` is required.
-* `emails` is required; use semicolon-separated addresses, in 95% only one should be provided.
+* Preserve loaded `emails`; include supplied addresses using semicolon separation. A profile email is needed for basic checklist completion, not a prerequisite for every independent settings write.
 * `address.street`, `address.city`, `address.zip`, and `address.country_code` are required.
 * Prefer `country_code`.
 * Do not invent `ic`, `dic`, `ic_dph`, `uk_vat_id`, `phone`, `web`, or `file_reference`.
+* Read and merge the complete current identity/address before updating; omitted fields may be cleared. Save country changes before explicit VAT settings.
 
 ## Guarded settings
 
@@ -71,8 +72,8 @@ Rules:
 
 * Prefer `currency_code`.
 * `bank_account_name` maximum is 35 characters for QR payments.
-* On update, `bank_accounts` is a complete replacement list.
-* Preserve existing bank account IDs when updating.
+* Use the user's existing `default_bank_account_set`; creating a different set does not assign it as default.
+* Nonempty `bank_accounts` upserts supplied entries by ID or set/currency. Omitted entries remain, but omitted fields on a supplied entry may be cleared. Merge loaded account details and preserve IDs.
 * Do not create fake IBAN/SWIFT values.
 
 ## Payment gateways

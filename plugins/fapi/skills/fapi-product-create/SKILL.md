@@ -72,6 +72,8 @@ Choose the product type deliberately:
 * `printed-period-publication` — recurring printed publications.
 * `excluding_vat` — only when the product must be handled outside normal VAT behavior.
 
+Use the actual name, description, and delivery ahead of a generic onboarding starter. Coaching cards or a deck of cards normally mean physical `good`, even after a Service starter. Explicit PDF/digital delivery takes precedence. Infer the probable type and briefly report it; ask only when the description is genuinely unclear or contradictory.
+
 ### Recurring product
 
 Recurring product metadata is product-level. Recurring billing in a sales form is form-level. Do not confuse the two.
@@ -113,6 +115,8 @@ Ask one combined question only when creation cannot continue safely, typically:
 
 Do not ask for optional fields that can safely stay unset.
 
+When name, price, currency, and other truly required data are clear, create the requested product without another general confirmation. Never turn a missing price into zero. In guided onboarding, continue with the linked form through `fapi-sales-form-create` unless the user explicitly wants only the product.
+
 ### 2. Inspect account defaults
 
 Use:
@@ -122,7 +126,8 @@ Use:
 
 Rules:
 
-* Use account default currency when the user omits currency and the default is available.
+* Outside guided onboarding, use account default currency when the user omits it and the default is available. In guided onboarding, require a currency supplied or clearly expressed by the user; do not silently assume CZK.
+* In guided onboarding, save an explicitly stated VAT status through `fapi-billing-setup` before creating dependent products. Do not merely acknowledge a new status while using the old account mode.
 * If the account is a non-VAT payer, use `vat: 0`.
 * If the account is a VAT payer and the user omits VAT, use the account default VAT rate when available; otherwise ask.
 * Use `including_vat: true` for normal public consumer prices unless the user clearly says the price is without VAT.
@@ -136,7 +141,7 @@ Read `references/product-fields.md` before composing create or update payloads.
 3. Use `item_templates_list` with `only_names: true` for a quick candidate check.
 4. Inspect likely candidates with `item_templates_show`.
 5. Reuse or update only when the existing product clearly matches the user's intent.
-6. Create a separate product only when the user requests a new variant or the existing product has materially different price, type, currency, tax, stock, or business purpose.
+6. Create a separate product only when a distinct variant or business purpose is intended. Adding another currency price to the same product is an update, not a reason to create a duplicate.
 
 `item_templates_create` is non-idempotent. Do not silently create duplicates.
 
@@ -186,6 +191,13 @@ Key constraints:
 * `metadata.buddy_metadata.messages_count` belongs only to a Buddy delivery requirement.
 * `metadata.subscription` and `metadata.subscription_level` require stable names and codes.
 * On update, sending `prices` replaces the stored price list. Sending `metadata` replaces the stored metadata object. Sending `triggers` replaces the trigger list.
+* When the user adds an EUR amount to an existing CZK offer, add a `one_time` EUR price alongside CZK unless replacement was explicit. Read `item_templates_show`, merge all existing prices and kinds, send the full `prices` list, and verify both amounts and all previous prices. Do not invent an exchange rate or change account currency.
+
+### Electronic material delivery
+
+For e-books and other electronic files, prefer uploading the material directly to the product in Prodej → Produkty → úprava produktu. After payment of a non-cancelled order, FAPI exposes purchased-product downloads on the order overview and through HTML email placeholders: `{items}` / `{itemsList}` may include the links, and `{downloads}` / `{downloadsList}` provide a separate list. Use `notification_reference_show` when composing email content.
+
+Current product MCP tools cannot upload or list attached product files. Create and verify the product/form, then give the manual upload step; do not claim upload or delivery was tested. A missing file does not block product/form creation. Do not require an external delivery URL or add another sending action when the existing paid email already delivers the product material. The seller must upload and verify delivery before starting sales.
 
 ### 5a. Decide contract-withdrawal carefully
 

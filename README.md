@@ -8,6 +8,7 @@ Authentication uses OAuth. The repository does not contain API tokens, usernames
 
 - `fapi-account-activation` — prepare an account for its first sale.
 - `fapi-billing-setup` — configure billing identity, VAT, currency, invoice defaults, and bank accounts.
+- `fapi-ebook-delivery` — prepare e-book sales and native product-file delivery after payment.
 - `fapi-default-notification-templates` — work safely with default notification and reminder templates.
 - `fapi-invoice-create` — create and verify invoices, proformas, simplified invoices, and credit notes.
 - `fapi-page-editor` — create and edit sales pages, reference styling, fonts, media, lines, and page elements.
@@ -83,4 +84,32 @@ Maintain Fapilot workflow instructions in `plugins/fapi/skills/`. Validate the s
 
 ## Contributor template
 
+Maintain customer-facing workflows in the owning skills in this repository, including any linked references that govern the same decision. A Fapilot prompt change in `fapi-cz/fapi` does not update these skills or OpenAI-hosted skill versions; keep the relevant sources consistent and track their publication separately. Installed plugin caches are not maintained sources. Merging a repository PR alone does not prove that installed or hosted skills have been refreshed.
+
 `templates/fapi-template-skill/` is an authoring template for new FAPI skills. It is intentionally outside `plugins/fapi/skills/` and is not installed with the plugin.
+
+## Synchronize OpenAI skills
+
+Run from a reviewed checkout with Python, a compatible `ansible-core` installation, and `OPENAI_API_KEY` supplied by the existing secret manager/environment. Optional `OPENAI_PROJECT_ID` and `OPENAI_ORGANIZATION_ID` select the project/organization. Never put the key in inventory, source files, or command arguments.
+
+```bash
+ansible-playbook -i localhost, ansible/sync-openai-skills.yml --check
+ansible-playbook -i localhost, ansible/sync-openai-skills.yml
+```
+
+The playbook runs locally, uploads the complete skill directory including references, and compares file contents with the latest hosted ZIP. It skips unchanged bundles, preserves existing IDs, creates immutable versions for changed content, and verifies uploaded content. It does not change `default_version`, delete remote skills, access application servers, or update installed plugin caches. Fapilot uses `latest`, so a successful live version upload becomes available to it without replacing the ID. Run releases serially for the same project.
+
+`ansible/skills.json` lists the IDs already registered by Fapilot; a missing/mismatched ID stops before writes to catch a wrong project. The restored `fapi-ebook-delivery` source corresponds to its existing hosted ID, not a new registration. Its previous hosted version 2 was inspected before restoring the source here.
+
+New skills are created only in a normal, authorized playbook run. The report's `fapi_pr_required` lists skills without a recorded Fapilot registration, including their new IDs after upload. Follow [AGENTS.md](AGENTS.md): create and cross-link a companion FAPI PR updating the loader registry and its test, then record the ID here after that PR is merged. Upload alone does not make a new skill available to Fapilot. Source/version changes and hosted publication are separate review/release steps.
+
+Check mode performs reads only. Uploads are not blindly retried after a connection failure: inspect the remote state and rerun the comparison to reconcile an ambiguous result. A short bounded retry handles the documented post-upload 404 while a new version becomes available.
+
+Verification without publishing:
+
+```bash
+python3 -m unittest discover -s tests
+ansible-playbook -i localhost, ansible/sync-openai-skills.yml --syntax-check
+```
+
+API behavior follows the [official OpenAI Skills guide](https://developers.openai.com/api/docs/guides/tools-skills), [version upload API](https://developers.openai.com/api/reference/resources/skills/subresources/versions/methods/create), and [version content API](https://developers.openai.com/api/reference/resources/skills/subresources/versions/subresources/content/methods/retrieve).
