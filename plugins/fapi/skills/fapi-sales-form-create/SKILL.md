@@ -80,6 +80,12 @@ Preserve those defaults unless the user explicitly requests a different known en
 
 ### 1. Build the offer model
 
+Before writes in a multi-account, pilot, or test-scoped request, call `users_show` and match the returned account ID and identity to the user's authorized target. If UI inspection is part of the request, also confirm the UI account matches before any write. A logged-out or inaccessible UI is not a match: stop writes until verified. Never treat a form name containing “test” as isolation or invent a test-mode field.
+
+Preparation authorizes only the requested catalog product and form configuration. Do not create invoices or orders, submit checkout (including preview), pay, send messages, or execute fulfillment. These require separately authorized testing with explicit scope and side effects.
+
+Read `settings_list` when account VAT/currency context is needed. For a missing product, use `fapi-product-create` and its field guide; creating an e-book does not itself configure file delivery or a legal withdrawal exemption.
+
 Determine from the request and available account data:
 
 * Main product or products.
@@ -125,7 +131,7 @@ When creating a product:
 * Use `repayment` only for an explicitly defined installment price entry.
 * Set `periodic: true` and `period` only for a genuinely recurring product.
 * Do not infer a VAT rate from the product name. Use `vat: 0` only when known.
-* Use vat rate from account settings `vat` key. Is user is non-vat-paying, set `vat: 0`. Alse set `include_vat: false`.
+* Use the account `vat` setting; for a non-VAT payer use `vat: 0`. The MCP price flag is `including_vat` (not `include_vat`); resolve it through `fapi-product-create` and the user's price wording.
 * For `enable_stock: true`, also provide `stock`.
 * Never use a stock-enabled product in recurring billing.
 * Ensure intended currencies have product prices, or explicitly report reliance on conversion.
@@ -312,6 +318,14 @@ Verify every applicable requirement:
 A successful `forms_create` response is not enough by itself.
 
 Configuration verification does not prove a real payment, bank import, email, webhook, membership grant, or shipping flow works end to end. The FAPI preview is functional and can create a real order; distinguish inspection from an actual checkout test.
+
+Report verification in three separate layers, marking unperformed checks as unverified:
+
+1. **Stored readback:** `item_templates_show` for a newly created product and `forms_show` for the form prove only returned configuration. If product creation succeeds but form creation fails, report the product ID and re-resolve duplicates before retrying; do not silently recreate or delete it.
+2. **UI inspection:** when available and in scope, inspect product, price, fields, methods, and responsive presentation in the matching account without submitting. Do not invent an admin/preview URL; use one exposed by the application or tool response.
+3. **Transaction and negative tests:** only with separate authorization, define expected outcomes for successful payment and delivery, invalid required fields, failed/cancelled/unpaid payments, and prevention of premature or duplicate delivery. Do not claim these passed from a stored trigger or UI preview.
+
+For an e-book, report file upload/hosting, protected download/access, delivery message or integration, verified dependency IDs, and payment-event binding as separate fulfillment dependencies. Configure only requested, supported actions with known dependencies; otherwise list manual steps. Payment-provider onboarding/approval, connection and supported methods must be completed by the merchant/provider when absent; read-only gateway tools do not onboard a provider. Do not label the sale ready while requested payments or delivery remain unverified.
 
 ### 8. Return an operational summary
 

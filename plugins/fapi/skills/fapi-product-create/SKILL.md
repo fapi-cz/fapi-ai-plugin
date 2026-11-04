@@ -182,7 +182,7 @@ Key constraints:
 
 * Physical products shipped abroad may need `metadata.english_name`, `metadata.country_of_origin`, and `metadata.harmonized_system_code`.
 * `metadata.affiliate_commission*` belongs only to FAPI Rewards or an explicit affiliate setup.
-* `metadata.allow_contract_withdrawal` means whether the customer has the right to withdraw from the contract for that product. Use the product-type defaults below unless the user gives a specific legal instruction.
+* `metadata.allow_contract_withdrawal` controls product eligibility for the withdrawal flow. The current MCP default is `true`; omit it unless an explicit, legally grounded instruction justifies changing it. Product type alone is not a legal exemption.
 * `metadata.buddy_metadata.messages_count` belongs only to a Buddy delivery requirement.
 * `metadata.subscription` and `metadata.subscription_level` require stable names and codes.
 * On update, sending `prices` replaces the stored price list. Sending `metadata` replaces the stored metadata object. Sending `triggers` replaces the trigger list.
@@ -193,12 +193,11 @@ Use `metadata.allow_contract_withdrawal: false` only when the legal regime clear
 
 Practical guardrails:
 
-* `electronic-service`, `electronic-publication`, and `electronic-period-publication` should usually use `metadata.allow_contract_withdrawal: false`.
-* `food` should usually use `metadata.allow_contract_withdrawal: false` only when the product is clearly perishable or has a short shelf life.
-* Other product types should usually stay `true` unless the user gives a specific legal reason to disable withdrawal.
-* For services and digital content, the `false` default assumes the usual legal conditions for loss of the withdrawal right are met, especially explicit consumer consent to early performance and the required notice.
+* Leave the field absent on create to preserve the MCP default `true`, including for `electronic-service`, `electronic-publication`, and `electronic-period-publication`.
+* Do not infer consent, early performance, required notice, or a legal exclusion from a name such as “online course”, “membership”, “ebook”, or “electronic magazine”.
+* Set `false` only on an explicit, legally grounded instruction establishing the applicable exclusion and its conditions; do not generate consent or legal wording.
+* On update, omit `metadata` if no metadata change is requested. If changing another metadata key, preserve the existing withdrawal value or its absence in the full replacement object; do not silently reset it.
 * Typical cases where withdrawal may be unavailable are the exceptions in § 1837 of the Czech Civil Code, especially fully performed services with prior explicit consent and notice, digital content not delivered on a tangible medium after performance has started with prior explicit consent and notice, custom-made goods, perishable goods, sealed hygiene goods after opening, newspapers or periodicals outside subscriptions, and leisure or accommodation services tied to a specific date.
-* If the user only says “online course”, “membership”, “ebook”, or “electronic magazine”, use `false` as the working default, but mention that the legal conditions still matter.
 * From 19 June 2026, if the contract was concluded through an online interface and the customer does have the withdrawal right, the merchant must also support an online withdrawal flow in that interface.
 
 ### 6. Create or update

@@ -130,15 +130,9 @@ Use metadata only when the user requirement or existing account pattern justifie
 
 `metadata.allow_contract_withdrawal` controls whether the product should participate in the contract-withdrawal flow.
 
-Use `false` carefully:
+Preserve the current MCP default `true` by leaving the field absent on create, including digital products. Set `false` only on an explicit, legally grounded instruction establishing an applicable exclusion and its conditions. Do not infer consent, early performance or required notice from an e-book/course name. If the legal basis is unclear, omit the field or ask only when the user requests an exemption. On update, preserve the stored value or its absence when replacing metadata; do not silently reset it.
 
-* Use these defaults unless the user gives a different legal instruction:
-* `electronic-service`, `electronic-publication`, and `electronic-period-publication`: usually `false`.
-* `food`: usually `false` only when the product is clearly perishable or has a short shelf life.
-* Other product types: usually `true`.
 * Common exceptions come from § 1837 of the Czech Civil Code, for example fully performed services with prior explicit consent and notice, started digital-content delivery with prior explicit consent and notice, custom-made goods, perishable goods, opened sealed hygiene goods, newspapers or periodicals outside subscriptions, and leisure or accommodation tied to a specific date.
-* For digital services and digital publications, the `false` default assumes the usual legal conditions for loss of the withdrawal right are met.
-* If the legal basis is unclear, keep the field enabled or ask the user.
 
 ## Update replacement semantics
 
