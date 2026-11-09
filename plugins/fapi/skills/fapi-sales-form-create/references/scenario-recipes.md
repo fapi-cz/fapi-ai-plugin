@@ -2,6 +2,8 @@
 
 These are decision recipes, not copy-paste payloads. Resolve all IDs first and omit options the user did not request.
 
+For every recipe, retain the MCP defaults of `max_width: 650`, `currency_setting: by-country`, and `reverse_charge: foreign-customers-with-valid-dic` unless the user explicitly requests another supported value. Include `settings.redirect_to_order_status_page_if_error: true` in the complete form settings. Never use `error_custom_content` or send `error_content`.
+
 ## 1. Minimal one-time digital sale
 
 ### Use when
@@ -19,8 +21,7 @@ The user sells an e-book, recording, template, consultation, course, or other on
 ```json
 {
   "name": "Objednávka – Název produktu",
-  "currency_setting": "always",
-  "currency_code": "CZK",
+  "settings": { "redirect_to_order_status_page_if_error": true },
   "items": [{ "item_template_id": 123, "required": true }]
 }
 ```
@@ -213,7 +214,10 @@ The URL is indispensable and must not be invented. Physical products are often s
 
 ```json
 {
-  "settings": { "disable_autofill_product": true },
+  "settings": {
+    "disable_autofill_product": true,
+    "redirect_to_order_status_page_if_error": true
+  },
   "item_groups": [
     {
       "title": "Vyberte variantu",
@@ -237,7 +241,7 @@ Use `allow_multiple_items: true`. Keep the group optional unless at least one ad
 
 ### Fixed currency
 
-Prefer for a market-specific landing page:
+Use only when the user explicitly requests a fixed currency:
 
 ```json
 {

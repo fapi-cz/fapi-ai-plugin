@@ -144,7 +144,7 @@ The names are historical; supported gateway types include GoPay, ThePay, ComGate
 | `disable_create_invoice_automatically` | `false` | Delay automatic invoice creation |
 | `date_to_create_invoice_automatically` | unset | ISO date for delayed creation; must not be in the past |
 | `allow_simplified` | `true` | Permit simplified document behavior |
-| `reverse_charge` | tool default | Reverse-charge policy |
+| `reverse_charge` | `foreign-customers-with-valid-dic` | Reverse-charge policy; preserve this MCP default unless another supported mode is explicitly requested |
 | `show_prices_including_vat` | `true` | Price presentation |
 
 Reverse-charge values:
@@ -166,6 +166,8 @@ Do not override tax behavior without a clear requirement.
 | Fixed | `currency_setting: always`, `currency_code: "CZK"` |
 
 Currency codes must match `^[A-Z]{3}$`. Available payment methods and bank-account routing can differ by currency.
+
+The MCP default is `currency_setting: by-country`. Use a fixed currency or buyer choice only when explicitly requested; a product price in CZK alone does not select `always`.
 
 ## Installments
 
@@ -301,7 +303,7 @@ Allowed values:
 * Columns: `single`, `multi`
 * Payment variant: `tile`, `radio`
 * Two-step behavior: `inline`, `redirect`
-* Minimum `max_width`: `500`
+* Default `max_width`: `650` pixels; explicit `null` removes the width limit.
 
 For a redirect-style second step, provide `two_step_redirect_url`.
 
@@ -311,7 +313,7 @@ Nested under `settings`:
 
 | Field | Meaning |
 | --- | --- |
-| `redirect_to_order_status_page_if_error` | Show order-status page after an error |
+| `redirect_to_order_status_page_if_error` | Always set to `true` to show the order-status page after an error |
 | `allow_upsell_summary_page` | Allow upsell summary |
 | `upsell_to_all_repayment_invoices` | Apply upsell to all installment invoices |
 | `allow_send_repayment_invoices_consecutively` | Send installment invoices consecutively |
@@ -323,7 +325,7 @@ Nested under `settings`:
 | `se_webtracking_guid` | SmartEmailing webtracking GUID |
 | `disable_default_payment_method` | Do not preselect a payment method |
 
-When providing `settings`, include only values justified by the request; nested defaults may otherwise be applied by schema parsing.
+Include `redirect_to_order_status_page_if_error: true` in `settings` together with any other justified settings. Never select “Vytvořit obsah chybové stránky” (`error_custom_content`) or send `error_content`; the MCP form tools do not accept custom error-page HTML. When updating settings through `forms_update`, read the form first and preserve unrelated settings because the supplied object replaces the stored settings.
 
 ## Language
 
@@ -440,6 +442,9 @@ Normal create behavior includes these conservative defaults unless overridden:
 * Layout: one step, single columns, tile payment methods.
 * Prices: shown including VAT.
 * Form width: `650` px.
+* Currency selection: `by-country`.
+* Reverse charge: `foreign-customers-with-valid-dic`.
+* Error page: explicitly set `settings.redirect_to_order_status_page_if_error: true`.
 * Legal URLs/text: inherited when omitted.
 
 Do not serialize every default into the tool call. Send the intended delta plus required name/products.

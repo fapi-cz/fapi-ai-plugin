@@ -1,6 +1,6 @@
 {
   "name": "fapi",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "description": "Connect FAPI to Codex and Claude with OAuth-enabled MCP tools and reusable sales and billing workflows.",
   "author": {
     "name": "FAPI",

@@ -6,5 +6,7 @@
   "fapi-page-editor": "skill_6aeb27ab24b08191a5fe23820400241d0ca291750f4103e7",
   "fapi-upsell-order-bump": "skill_6a168df0c8d88193aae808b73a2e55cd093801d1b45761c5",
   "fapi-billing-setup": "skill_6a3a8525c8e0819196e3eecb7a314efa0499394bd8514aaa",
-  "fapi-invoice-create": "skill_6a3a85170754819196d18511df717d69012f9fd13321f2bf"
+  "fapi-invoice-create": "skill_6a3a85170754819196d18511df717d69012f9fd13321f2bf",
+  "fapi-default-notification-templates": "skill_6aeb38c447ec81919539135c8f3d6353051c0b7fb8885e94",
+  "fapi-sales-email-communication-create": "skill_6aeb38db05d881919745bde3ac8e324a02f9fbfffa93deeb"
 }
