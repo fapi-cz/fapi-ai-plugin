@@ -4,9 +4,13 @@
 
 ## OpenAI publication
 
-Use `ansible/sync-openai-skills.yml` to compare reviewed source with OpenAI and publish changed versions. Keep existing skill IDs; `ansible/skills.json` records the IDs already registered in Fapilot. Never delete or recreate a skill just to update its content. Do not store API keys in the repository, reports, or command arguments.
+The standard release path is `.github/workflows/publish-openai-skills.yml`: pull requests run offline checks; pushes to `main` and manual runs on `main` publish through the existing synchronizer and verify the hosted content. A merged skill change should reach Fapilot through this GitHub run without another local upload. Repair or configure this pipeline when it is missing or failing; do not substitute a manual release unless the user explicitly requests that exception.
 
-Run check mode before an authorized publication and inspect `fapi_pr_required`. Source edits and PR creation do not by themselves authorize a live publication. Keep tests offline; a separately authorized check-mode run may read OpenAI without writing. Do not claim hosted or installed content was refreshed from a source commit alone.
+Keep existing skill IDs; `ansible/skills.json` records the IDs already registered in Fapilot. Never delete or recreate a skill just to update its content. Store the release credential only in the GitHub secret `OPENAI_API_KEY`, with optional project/organization selectors in repository variables. Do not put API keys in source, reports, or command arguments.
+
+The workflow serializes releases, checks current `main` before writing, compares before publication, and requires a final comparison without differences. Inspect `fapi_pr_required` in its summary. Keep tests and PR runs offline, without publication credentials. Source edits and PR creation alone do not publish; a successful release run must verify the uploaded bundles. Preserve explicit source-only or no-release requests.
+
+For an explicitly requested local exception, use `ansible/sync-openai-skills.yml` or the FAPI release helper, which share `scripts/sync_openai_skills.py`. Keep its check-before-write and readback verification. Never implement another upload client or blindly retry an ambiguous write.
 
 ## Every genuinely new skill needs a Fapilot PR
 

@@ -80,7 +80,7 @@ Refresh the marketplace and update or reinstall the plugin with the commands abo
 
 ## OpenAI-hosted skills for Fapilot
 
-Maintain Fapilot workflow instructions in `plugins/fapi/skills/`. Validate the skill, publish its bundle through the [OpenAI Skills API](https://developers.openai.com/cookbook/examples/skills_in_api), and verify the returned skill ID, version and content. Then prepare the Fapilot PR that registers that hosted skill ID. Keep credentials out of the bundle and repository. New workflow instructions do not belong in Fapilot's static `fapilot_instructions.md` or a duplicate static prompt.
+Maintain Fapilot workflow instructions in `plugins/fapi/skills/`. Validate the skill and publish through the [GitHub release workflow](.github/workflows/publish-openai-skills.yml), which uses the OpenAI Skills API and verifies the returned skill ID, version and content. For a genuinely new ID, prepare the Fapilot PR that registers it. Keep credentials out of the bundle and repository. New workflow instructions do not belong in Fapilot's static `fapilot_instructions.md` or a duplicate static prompt.
 
 ## Contributor template
 
@@ -89,6 +89,22 @@ Maintain customer-facing workflows in the owning skills in this repository, incl
 `templates/fapi-template-skill/` is an authoring template for new FAPI skills. It is intentionally outside `plugins/fapi/skills/` and is not installed with the plugin.
 
 ## Synchronize OpenAI skills
+
+GitHub Actions is the standard release path. [Publish OpenAI skills](.github/workflows/publish-openai-skills.yml) runs offline tests on pull requests. After a merge to `main`, it compares the reviewed skill bundles, publishes changed versions through the existing synchronizer, downloads and verifies them, and requires a final comparison without differences. Releases are serialized, and a stale main commit cannot publish. Unchanged skills do not receive another version.
+
+Configure the repository Actions secret `OPENAI_API_KEY` for the existing Fapilot OpenAI project. Optional repository variables `OPENAI_PROJECT_ID` and `OPENAI_ORGANIZATION_ID` select the project/organization. The registered-ID check rejects a different project before writing. Pull request runs do not receive publication credentials or call OpenAI.
+
+For a manual GitHub release or reconciliation, run from `main`:
+
+```bash
+gh workflow run publish-openai-skills.yml --repo fapi-cz/fapi-ai-plugin --ref main
+```
+
+Check the run's result and summary for published versions and any `fapi_pr_required` registrations. A source merge or a started run alone does not prove that live content was refreshed. Fapilot loads `latest`, so an update under an existing registered ID needs no application deployment. New IDs still follow [AGENTS.md](AGENTS.md).
+
+### Explicit local release exception
+
+Use a local upload only when the user specifically requests it. A missing secret or failed GitHub run should normally be fixed in the pipeline.
 
 Run from a reviewed checkout with Python, a compatible `ansible-core` installation, and `OPENAI_API_KEY` supplied by the existing secret manager/environment. Optional `OPENAI_PROJECT_ID` and `OPENAI_ORGANIZATION_ID` select the project/organization. Never put the key in inventory, source files, or command arguments.
 
