@@ -1,14 +1,14 @@
 ---
 name: fapi-page-editor
 description: >-
-  Create and edit FAPI sales pages in the visual page editor, including page
-  layout, reference website styling, headings, text fonts, images, videos,
+  Create, design, restyle and review complete FAPI sales pages in the visual
+  page editor, including page layout, reference website styling, fonts, images, videos,
   colored lines, and duplicating or deleting elements and columns. Use for
   editor stránek, prodejní stránka, fonty, rozvržení, and Wistia page embeds.
   Checkout configuration itself belongs to the sales-form workflow.
 ---
 
-# Edit FAPI sales pages
+# Create and edit FAPI sales pages
 
 Work with the structured document shared by the visual editor and the `pages_*` tools. Use the current tool schemas as the authority for supported properties, fonts, and limits. The page's `html` is derived output; do not replace it or invent a CustomHtml component.
 
@@ -28,6 +28,14 @@ Keep these locations distinct:
 | Embedded checkout | `FapiForm.props.form_id` |
 
 Use an owned form resolved through `forms_list` / `forms_show` for a working checkout. If a form must be created, use the sales-form workflow. A draft placeholder is acceptable when checkout details are still missing; describe it as unfinished. Preserve the real form ID during design changes. Do not invent prices, testimonials, results, tracking IDs, or legal content.
+
+## Design a complete page
+
+For a new page, a broad restyle, or a visual review, read [Sales-page design](references/sales-page-design.md). It covers choosing a subject-specific composition, writing the offer, mapping the design to FAPI components, and reviewing the actual desktop and phone render. Its [palette library](references/design-palettes.md) supplies concrete color roles when the user has not supplied a brand or reference.
+
+Choose and implement a fitting direction when the user delegates the design. Offer alternatives when requested; a creation request does not require another design-approval step. A review request produces findings without saving changes. A precise edit, such as changing one heading or button color, stays precise and does not trigger a redesign.
+
+The user's brand, exact copy, requested structure and measured reference take precedence over the library's starting choices. During a restyle preserve the existing content and checkout; rewrite copy or rearrange sections only within the requested scope.
 
 ## Components and layout
 
