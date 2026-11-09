@@ -11,7 +11,7 @@ Authentication uses OAuth. The repository does not contain API tokens, usernames
 - `fapi-ebook-delivery` — prepare e-book sales and native product-file delivery after payment.
 - `fapi-default-notification-templates` — work safely with default notification and reminder templates.
 - `fapi-invoice-create` — create and verify invoices, proformas, simplified invoices, and credit notes.
-- `fapi-page-editor` — create and edit sales pages, reference styling, fonts, media, lines, and page elements.
+- `fapi-page-editor` — create, design and review complete sales pages with 23 composition directions, 56 palettes, reference styling and verified checkout references.
 - `fapi-product-create` — create and update reusable product catalog items.
 - `fapi-sales-email-communication-create` — create email communication for a sales flow.
 - `fapi-sales-form-create` — create a complete FAPI sales form.
