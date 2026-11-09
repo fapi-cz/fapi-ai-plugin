@@ -103,7 +103,7 @@ Ask one focused question only when creation is impossible without an indispensab
 * Missing price or currency for a product that must be created.
 * A required external URL or undiscoverable integration/entity ID.
 
-Do not ask the user to choose every optional setting. Leave unspecified options at FAPI defaults.
+Do not ask the user to choose every optional setting. Use the MCP form defaults: `max_width: 650`, `currency_setting: by-country`, and `reverse_charge: foreign-customers-with-valid-dic`. Explicitly requested supported values override these defaults. Leave other unspecified options at FAPI defaults.
 
 In guided first-sale onboarding, a starter choice followed by a clear product name, price, and currency authorizes the product and linked form. Create them without asking again whether to create either one, unless the user explicitly requested only a product. Ask only about missing or contradictory data. Use the product skill to infer the actual type and preserve additional currency prices; save explicitly stated VAT status through the billing skill before dependent creation.
 
@@ -199,6 +199,8 @@ Use cash on delivery only for physical fulfillment. Use cash only when an in-per
 
 #### Currency
 
+Use `by-country` unless the user explicitly requests a fixed currency or buyer choice. A product price in CZK alone does not request a fixed-CZK form.
+
 * Fixed currency: `currency_setting: always` plus `currency_code`.
 * Buyer choice: `currency_setting: choice` plus `allowed_currencies`.
 * Country-based selection: `currency_setting: by-country`.
@@ -209,7 +211,13 @@ Use uppercase ISO 4217 codes. Check products, gateways, and bank accounts for ev
 
 Keep `proforma: true` for the normal pay-before-tax-document flow unless the user explicitly wants an immediate regular invoice.
 
-Do not set project, invoice series, message sets, reminder sets, reverse-charge policy, or delayed invoice behavior without a stated requirement and a known entity/value.
+Use the MCP default `reverse_charge: foreign-customers-with-valid-dic` unless the user explicitly requests another supported reverse-charge mode. Do not set project, invoice series, message sets, reminder sets, or delayed invoice behavior without a stated requirement and a known entity/value.
+
+#### Appearance and error page
+
+New forms use `max_width: 650` pixels unless another supported width is explicitly requested. Omit the field to use this MCP default; use `null` only when the user requests no width limit.
+
+Always set `settings.redirect_to_order_status_page_if_error: true` so an error redirects to the order-status page. Never select “Vytvořit obsah chybové stránky” (`error_custom_content`), send `error_content`, or generate custom error-page HTML. This does not restrict the internal thank-you page (`thanks_content`). Combine the redirect flag with any other justified settings in the same object.
 
 #### Legal settings
 
@@ -312,6 +320,8 @@ Verify every applicable requirement:
 * Exact name and intended product IDs.
 * No item group with `allow_multiple_items: false` or omitted contains a child item with `required: true`.
 * Currency and product-price compatibility.
+* `max_width: 650`, `currency_setting: by-country`, and `reverse_charge: foreign-customers-with-valid-dic`, except for explicitly requested overrides.
+* `settings.redirect_to_order_status_page_if_error: true` for the error page.
 * Requested payment methods are resolved and available.
 * Installment or recurring settings are internally consistent.
 * Buyer fields collect enough data without unnecessary friction.
@@ -432,7 +442,7 @@ A configuration check is not a transaction test. A real preview/order/payment te
 * Never guess product, discount, gateway, connection, message, reminder, shipping, or custom-field IDs.
 * Product search can be exact; form search may be broader, so compare form names exactly.
 * Use uppercase three-letter currency codes.
-* `max_width`, when changed, must be at least `500`.
+* New forms default to `max_width: 650`, country-based currency, and reverse charge for foreign customers with a valid VAT ID. Do not replace these defaults without an explicit request.
 * A redirect-style two-step form requires `two_step_redirect_url`.
 * Enabling bumps, discounts, shipping methods, or changeable items without valid entries is incomplete.
 * In a single-selection item group, require the group rather than an individual child item. `items[].required: true` is valid only when `allow_multiple_items: true`.
@@ -454,7 +464,7 @@ A configuration check is not a transaction test. A real preview/order/payment te
 1. Search for the product.
 2. If missing, create a one-time CZK digital product.
 3. Check for an exact form-name collision.
-4. Create a one-product fixed-CZK form with inherited account defaults.
+4. Create a one-product form using country-based currency, the MCP defaults, error redirection to the order-status page, and inherited account defaults.
 5. Verify the form and resolved payment methods.
 
 ### Subscription with automatic card charging
