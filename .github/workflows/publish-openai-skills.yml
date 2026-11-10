@@ -1,0 +1,82 @@
+name: Publish OpenAI skills
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: openai-skills-${{ github.event_name == 'pull_request' && github.ref || 'release' }}
+  cancel-in-progress: false
+
+jobs:
+  skills:
+    name: Validate and publish skills
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.11'
+
+      - name: Install synchronizer dependencies
+        run: python -m pip install --requirement scripts/requirements.txt
+
+      - name: Run offline tests
+        run: python -m unittest discover -s tests
+
+      - name: Publish and verify maintained skills
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_PROJECT_ID: ${{ vars.OPENAI_PROJECT_ID }}
+          OPENAI_ORGANIZATION_ID: ${{ vars.OPENAI_ORGANIZATION_ID }}
+        shell: bash
+        run: |
+          if [[ -z "$OPENAI_API_KEY" ]]; then
+            echo "::error::Configure the repository secret OPENAI_API_KEY before publishing."
+            exit 1
+          fi
+
+          git fetch --no-tags origin main
+          if [[ "$(git rev-parse HEAD)" != "$(git rev-parse FETCH_HEAD)" ]]; then
+            echo "::error::Source is no longer the current main. Use the newer main run."
+            exit 1
+          fi
+
+          python scripts/sync_openai_skills.py --check | tee "$RUNNER_TEMP/openai-skills-preflight.json"
+          python scripts/sync_openai_skills.py --apply | tee "$RUNNER_TEMP/openai-skills-published.json"
+          python scripts/sync_openai_skills.py --check | tee "$RUNNER_TEMP/openai-skills-verified.json"
+
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          directory = Path(os.environ['RUNNER_TEMP'])
+          published = json.loads((directory / 'openai-skills-published.json').read_text())
+          verified = json.loads((directory / 'openai-skills-verified.json').read_text())
+          if verified['changed'] or any(skill['action'] != 'unchanged' for skill in verified['skills']):
+              raise SystemExit('Published content differs from source. Inspect remote state before another write.')
+
+          lines = ['## OpenAI skills', '', '| Skill | Version | Action |', '| --- | --- | --- |']
+          lines.extend(f"| {skill['name']} | {skill['version']} | {skill['action']} |" for skill in published['skills'])
+          lines.extend(['', 'Verified: all hosted bundles match this main commit.'])
+          if verified['fapi_pr_required']:
+              lines.extend(['', 'Fapilot registration required:'])
+              lines.extend(f"- {skill['name']}: `{skill['id']}`" for skill in verified['fapi_pr_required'])
+              print('::warning::New skill IDs still require their companion FAPI registration PRs.')
+          with Path(os.environ['GITHUB_STEP_SUMMARY']).open('a') as summary:
+              summary.write('\n'.join(lines) + '\n')
+          PY
