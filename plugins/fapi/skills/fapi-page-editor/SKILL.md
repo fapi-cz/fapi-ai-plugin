@@ -1,7 +1,7 @@
 ---
 name: fapi-page-editor
 description: >-
-  Create, design, restyle and review complete FAPI sales pages in the visual
+  Create and manage FAPI funnels, then create, design, restyle and review complete FAPI sales pages in the visual
   page editor, including page layout, reference website styling, fonts, images, videos,
   colored lines, and duplicating or deleting elements and columns. Use for
   editor stránek, prodejní stránka, fonty, rozvržení, and Wistia page embeds.
@@ -16,18 +16,34 @@ Work with the structured document shared by the visual editor and the `pages_*` 
 
 For an existing page, call `pages_show` with its actual ID before editing. If the user identifies a page by name, find it with `pages_list` and resolve ambiguity before a write. Preserve its `name`, latest `revision`, and the complete document, including unrelated content, links, stable component IDs, checkout references, spacing, settings, and tracking.
 
-For a new page, check for an existing matching page before `pages_create`. Omitting `document` creates the starter draft. Give a requested variant or copy a distinct name. A page name and the public title are different: the public title belongs to `document.root.props.title`.
+For a new page, first use `funnels_list` to select an owned active funnel and check its pages for a matching existing page. Create a funnel with `funnels_create` when the user requests a new group. Pass the required `funnel_id` to `pages_create`; a new page cannot exist outside a funnel. Omitting `document` creates the starter draft. Give a requested variant or copy a distinct name. The internal page name and public SEO title are separate; empty `document.root.props.title` inherits the funnel title.
 
 Keep these locations distinct:
 
 | Content | Document location |
 | --- | --- |
 | Public title | `root.props.title` |
-| Path, SEO, language and supplied conversion snippets | `root.props.settings` |
-| Meta Pixel and GTM configuration | `root.props.tracking` |
+| Path, SEO, social previews, language and supplied snippets | `root.props.settings` |
+| Meta Pixel, GTM, GA4, Google Ads, TikTok, Pinterest, Sklik, ChatGPT Ads and FAPI Rewards | `root.props.tracking` |
 | Embedded checkout | `FapiForm.props.form_id` |
 
 Use an owned form resolved through `forms_list` / `forms_show` for a working checkout. If a form must be created, use the sales-form workflow. A draft placeholder is acceptable when checkout details are still missing; describe it as unfinished. Preserve the real form ID during design changes. Do not invent prices, testimonials, results, tracking IDs, or legal content.
+
+## Funnels, URLs and shared settings
+
+A funnel has an internal name, an optional owned connected domain, a base path (including `/`), metadata, measurement settings and three public snippet positions. `funnels_list` also returns available connected domains and their states. Multiple funnels can share a domain if their resulting addresses do not collide.
+
+Read `funnels_show` before `funnels_update`. Omitted top-level fields are preserved, while supplied `settings` and `tracking` replace those objects completely. A missing page override inherits the current funnel value on the next public load, without republishing. Preserve explicit `false`; it is different from an unset value. Page-specific overrides are published with the page. Form measurement remains independent.
+
+Use `settings.path: "/"` for the funnel landing page; for example, base `/kurz` and page `/podekovani` produce `/kurz/podekovani`. Saving a page path, changing a funnel domain/base path, or moving a page changes its public URL immediately. Exact links in the account's funnels are repaired in draft and published content independently, preserving query strings, fragments and unrelated draft edits. No redirect is created.
+
+To move a page, first explain the new URL and inherited-settings change and obtain the user's confirmation. Read `pages_show`, preserve the complete document/name/revision, and send the target `funnel_id` with `pages_update`. Identity, statistics, explicit overrides and draft/published state remain intact.
+
+Public snippets use `header_code`, `body_start_code` and `footer_code`. Each position runs page code before funnel code. Use public identifiers in these snippets. The public page loads the FAPI SDK automatically. Configured page integrations use their page-view and successful order-creation events. FAPI Rewards captures the referral code for the existing commission after payment. Checkout waits up to 100 ms for page measurement.
+
+Archive through `funnels_update` with `archived: true` to preserve data and statistics while public pages return 404. Archived funnels still reserve their URLs. Restoring preserves each page's previous publication state. For permanent deletion, read `funnels_show`, show the exact name and page count, obtain confirmation, then call `funnels_delete` with the reviewed `expected_page_count`. Deletion removes all pages and their statistics.
+
+Original pages remain in their original interface/editor behind “Zobrazit původní prodejní stránky”. Do not migrate them automatically or create new legacy pages.
 
 ## Design a complete page
 
@@ -83,4 +99,4 @@ Map observed values to supported page properties and safe rich text. Preserve th
 
 Update through `pages_update` with the complete document, preserved `name` and latest `revision` from `pages_show`. On HTTP 409, reload and reapply only the intended edit; do not overwrite concurrent changes.
 
-Read the stored result with `pages_show` and check the intended edit and preserved content, IDs, form references, settings and tracking. Report the `editor_url` and draft state. Publish through `pages_publish` only when the user's request authorizes publication, using the current revision. A design edit alone does not authorize publishing the customer page.
+Read the stored result with `pages_show` and check the intended edit and preserved content, IDs, form references, settings and tracking. Report the `editor_url`, funnel and draft state. Distinguish immediate URL/membership changes from content and page-override changes that still require publication. Publish through `pages_publish` only when the user's request authorizes publication, using the current revision. A design edit alone does not authorize publishing the customer page.
