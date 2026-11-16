@@ -3,6 +3,8 @@ name: fapi-product-create
 description: >-
   Use this skill when the user wants Fapilot to create, update, verify, or
   prepare a FAPI product, product catalog item, item template, prodejní položka,
+  main product image upload, nahrání obrázku k produktu,
+  electronic product materials, nahrání souborů nebo materiálů k produktu,
   ceníková položka, price, VAT, stock, recurring product, repayment price,
   subscription metadata, Buddy delivery metadata, affiliate commission, Pohoda
   accounting fields, or a product intended for a sales form, invoice, upsell, or
@@ -27,6 +29,8 @@ Use this skill for:
 * Preparing products for later use in `forms_create`, `forms_update`, `invoices_create`, order bumps, or upsells.
 * Resolving duplicate or ambiguous catalog products before writing.
 * Verifying product fields after creation or update.
+* Uploading or replacing the main product image from a local file accessible to the client.
+* Uploading one or more electronic product materials from local files in a supported Codex or Claude Code host.
 
 Do not use this skill for:
 
@@ -226,6 +230,65 @@ For update:
 3. For `prices`, `metadata`, and `triggers`, merge intentionally and send the complete desired value for that field.
 4. Never change price, VAT, stock, recurring, affiliate, accounting, or delivery behavior on a live product without explicit user intent.
 
+### 6a. Upload or replace the main product image
+
+Use this path only when the user requests an image change. It preserves price, VAT, code, metadata and all other product settings. Resolve the product with `item_templates_list`/`item_templates_search` and read `item_templates_show` first; retain the original fields for comparison.
+
+This workflow requires `item_templates_upload_image` and a client that can programmatically read a local file and pass its contents as arguments to the connected MCP tool. The helper requires Node.js 20+. A remote MCP server cannot read a client path. If the tool is absent or the client cannot programmatically pass the file contents through its existing MCP connection, report that exact limitation without claiming an upload or requesting another login.
+
+1. Import `imageUploadInput` from `scripts/upload-image.mjs`, resolving the script relative to this skill's installed directory. Call `await imageUploadInput(productId, localImagePath)` in the client's programmatic tool environment. The function returns `{ id, content_base64 }`; it does not upload anything.
+2. Pass that returned object directly to `item_templates_upload_image` through the already authenticated MCP connection. Never print or copy base64 into the conversation. Do not put API keys, OAuth credentials, filesystem paths or a data URI into the tool arguments. There is no separate upload authorization or public transfer endpoint.
+3. Require a successful response with `image.item_template_id` matching the intended product and a nonempty `image.image_url`. Independently call `item_templates_show`, require the saved `image_url` to match, fetch that URL through the client's HTTPS/file tools, and check a nonempty image response. Compare the saved price, VAT, code and other settings with the original readback.
+4. Report success only after this independent verification. Building tool arguments, reading a local file or receiving a placeholder URL is not an uploaded image. After a timeout or uncertain response, read the product before retrying. Invalid, damaged or oversized image content is rejected before replacing the saved image.
+
+The limit is 5 MiB and 12 million pixels. PNG, JPEG and WebP are supported; AVIF also requires server runtime support and otherwise returns a validation error. Images taller than 500 px are resized proportionally. The product image is public presentation content, including order bumps using `{image}`; paid download materials use a separate delivery workflow.
+
+### 6b. Upload one or more product materials
+
+Use this workflow for electronic files delivered with a purchased product. It adds files to the existing native product materials and preserves the product's other settings. Supported formats are PDF, ZIP and MP4/WebM/MOV/OGV/MPEG/MPG/3GP, from 1 byte to 512 MiB per file. The server validates the actual format; an extension alone does not prove valid content.
+
+This workflow supports Codex and Claude Code clients with local file/shell access, Node.js 20+ and outbound HTTPS. It requires `item_templates_prepare_file_upload` and `item_templates_list_files` on the connected server. It does not provide local file access to Fapilot or other remote hosts. If a required capability is unavailable, report the exact limitation. Never send a client filesystem path to remote MCP or print file content or base64 into the conversation. The helper uses the existing authenticated MCP connection only for preparation; its direct transfer uses a narrowly scoped authorization, not an API key or the host's OAuth credentials.
+
+1. Resolve the intended product with `item_templates_list`/`item_templates_search`; call `item_templates_show` and `item_templates_list_files({ id })`. Retain the original product fields and existing material IDs. Ask only when product selection or the requested local files are ambiguous.
+2. Resolve `scripts/upload-materials.mjs` relative to this installed skill. Run `node upload-materials.mjs metadata /local/book.pdf /local/exercises.zip /local/lesson.mp4`. It streams the local files and returns `{ "files": [{ "file_name", "size", "sha256" }, ...] }` in the supplied order. No upload has happened yet.
+3. For each descriptor, call `item_templates_prepare_file_upload({ id, file_name, size, sha256 })`. Retain each returned `{ upload: { upload_url, upload_token, expires_at } }` paired with its exact local file and descriptor. Preparation checks ownership; the authorization expires after 30 minutes and is bound to the product and exact file bytes. Prepare files shortly before transfer.
+4. Pass this JSON plan programmatically through stdin to `node upload-materials.mjs transfer -`. The following describes its structure; use the real descriptor and preparation response, never placeholder values:
+
+```json
+{
+  "id": 123,
+  "files": [
+    {
+      "path": "/local/book.pdf",
+      "metadata": { "file_name": "book.pdf", "size": 1234, "sha256": "computed SHA-256" },
+      "upload": { "upload_url": "returned URL", "upload_token": "returned token", "expires_at": "returned expiry" }
+    }
+  ]
+}
+```
+
+The helper also accepts `transfer PLAN.json`; keep any temporary plan private with mode `0600`, never commit or print it, and delete it after use. It streams a raw HTTPS POST with backpressure, refuses redirects and unexpected endpoints, and verifies every successful response by independently downloading and hashing the saved bytes. It accepts only the canonical FAPI HTTPS endpoint and the explicit local `https://web.fapi.docker` endpoint. Use the existing trusted CA setup, including `NODE_EXTRA_CA_CERTS` when required; never disable TLS validation.
+
+5. Inspect every ordered result. `verified` means the upload response and downloaded size/SHA-256 match. `failed` means preflight or the server rejected this file. `uploaded_unverified` retains the saved file ID but needs download verification. `unknown` means the transfer outcome is uncertain. Results retain earlier successes and continue with other files; a nonzero CLI exit status does not mean all files failed. Never automatically retry an uncertain upload: list the product materials first and verify matching candidates to avoid duplicates. Reprepare expired authorizations only after checking whether the previous transfer saved a file.
+6. Independently call `item_templates_list_files({ id })` after the transfers. Require each returned uploaded file ID to belong to the intended product with `content_exists: true`; preserve every preexisting material ID. Native storage may sanitize the filename. Use the actual saved ID and returned name, not an invented name or URL. Pass fresh list records and the original local descriptors to `node upload-materials.mjs verify -` with this plan shape:
+
+```json
+{
+  "id": 123,
+  "files": [
+    {
+      "metadata": { "file_name": "book.pdf", "size": 1234, "sha256": "computed SHA-256" },
+      "file": { "id": 456, "item_template_id": 123, "name": "book.pdf", "content_exists": true,
+        "download_url": "fresh returned URL", "download_token": "fresh returned token", "expires_at": "fresh returned expiry" }
+    }
+  ]
+}
+```
+
+7. Require every requested file's independent verification to pass and compare `item_templates_show` with the original product settings before reporting completion. Report actual saved IDs, verified filenames and per-file failures. Preparation, metadata creation and an HTTP success without byte verification are insufficient. Tokens must never appear in the final report.
+
+Download URLs from these operations require owner-scoped download authorization. They are not public delivery links, do not log in a particular buyer and do not prove payment. Preserve the native paid-product delivery and download checks; do not replace them with these owner verification URLs or change notification settings unless separately requested.
+
 ### 7. Verify the result
 
 Call:
@@ -365,3 +428,4 @@ Load resources only when needed:
 * `references/product-fields.md` — Read before composing `item_templates_create` or `item_templates_update`.
 * `references/scenario-recipes.md` — Read for physical goods, recurring products, repayment prices, multi-currency products, Buddy, affiliate, Pohoda, or custom metadata.
 * `references/sources.md` — Read when provenance, MCP/API precedence, or recently changed behavior matters.
+* `scripts/upload-materials.mjs` — Compute local descriptors, transfer authorized material bytes, and verify fresh material readback on supported local clients.

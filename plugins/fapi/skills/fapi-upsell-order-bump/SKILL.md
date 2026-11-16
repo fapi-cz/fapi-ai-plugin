@@ -136,6 +136,7 @@ Rules:
 * Preserve existing order bumps unless the user wants them replaced or removed.
 * Include `{price}` in `name`; include `{price}` in `description` when price is mentioned.
 * Use `{itemName}`, `{priceBeforeDiscount}`, or `{image}` only when it improves the offer.
+* `{image}` uses the catalog product’s saved main image. When the user provides a local image, follow the [product image upload workflow](../fapi-product-create/SKILL.md#6a-upload-or-replace-the-main-product-image), including the installed input helper, the authenticated MCP upload and independent `item_templates_show`/image readback. Do not send a filesystem path or placeholder URL as form data. Preserve unrelated product and form settings.
 * Keep HTML to the safe subset: `a`, `br`, `p`, `strong`, `b`, `i`, `em`, `u`, `s`, `strike`, `span`, `ul`, `ol`, `li`.
 * Use only `http`, `https`, or `mailto` links in anchors.
 * If the main form is recurring, explicitly decide whether the bump should also recur. If it should not recur, report the limitation or use supported recurring replacement logic only with verified requirements.

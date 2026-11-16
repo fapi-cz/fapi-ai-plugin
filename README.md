@@ -17,6 +17,24 @@ Authentication uses OAuth. The repository does not contain API tokens, usernames
 - `fapi-sales-form-create` — create a complete FAPI sales form.
 - `fapi-upsell-order-bump` — configure order bumps and upsells on an existing form.
 
+## Product image uploads
+
+The product skill includes `plugins/fapi/skills/fapi-product-create/scripts/upload-image.mjs`, a dependency-free Node.js 20+ input helper. Its `imageUploadInput(id, filePath)` function reads the local image and returns complete arguments for `item_templates_upload_image`. The client must pass that object programmatically to the tool through its existing authenticated MCP connection. The helper itself does not upload files and needs no credentials. Do not print or paste base64 into the conversation. See the [product workflow](plugins/fapi/skills/fapi-product-create/SKILL.md#6a-upload-or-replace-the-main-product-image) for the tool sequence and verification.
+
+This client change requires the corresponding server tool to be deployed. Installation alone does not add server capabilities, local file access or a programmatic file-to-tool bridge to a host. Report missing capabilities explicitly. Supported files are PNG/JPEG/WebP and AVIF when the server runtime supports it, at most 5 MiB/12 million pixels; height above 500 px is resized. Product readback and fetching the saved image are required before reporting completion.
+
+Run the helper regressions with `node --test plugins/fapi/skills/fapi-product-create/scripts/upload-image.test.mjs` in the repository's available test runtime.
+
+## Product material uploads
+
+The product skill includes `plugins/fapi/skills/fapi-product-create/scripts/upload-materials.mjs`, a dependency-free Node.js 20+ transfer client for Codex and Claude Code hosts with local shell/file access and outbound HTTPS. It streams PDF, ZIP and MP4/WebM/MOV/OGV/MPEG/MPG/3GP files, up to 512 MiB per file. This workflow requires the deployed `item_templates_prepare_file_upload` and `item_templates_list_files` tools; it does not claim support in Fapilot or hosts without local execution.
+
+Run `node upload-materials.mjs metadata FILE...` from the installed script directory to compute ordered filename/size/SHA-256 descriptors. Prepare each upload through the authenticated MCP connection, then pass a JSON plan to `node upload-materials.mjs transfer -` through stdin. The plan pairs each local path and descriptor with its returned upload authorization. The helper sends the bytes directly to the scoped HTTPS endpoint and downloads each saved file to compare its exact size and SHA-256. It never prints file content, base64 or authorization tokens.
+
+After transfer, independently call `item_templates_list_files`, retain existing material IDs, and run `node upload-materials.mjs verify -` with the fresh file records and original descriptors. See the [complete material workflow and plan formats](plugins/fapi/skills/fapi-product-create/SKILL.md#6b-upload-one-or-more-product-materials). Per-file results preserve successes and failures; an uncertain result requires readback before any retry. Owner download authorization proves saved bytes, not a buyer's identity or payment. Keep TLS verification enabled; use the existing trusted CA configuration for local Docker HTTPS.
+
+Run client regressions with `node --test plugins/fapi/skills/fapi-product-create/scripts/upload-materials.test.mjs` in the repository's available test runtime.
+
 ## Install in Codex
 
 ```bash
