@@ -14,6 +14,8 @@ description: >-
 
 Create a dedicated customer email communication set for a FAPI sales form. The workflow starts from FAPI default message templates, then rewrites the order-created and paid email templates so the buyer gets clear payment, order, and delivery instructions.
 
+For an email sent on specific installments or on one-time payments only, follow the installment-action recipe in `fapi-sales-form-create`. It configures a custom message template and a payment condition on the form action.
+
 Use this skill for:
 
 - Creating a message template set for a sales form.
