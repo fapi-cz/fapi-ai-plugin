@@ -5,9 +5,10 @@ description: >-
   order form, checkout, objednávkový formulář, or prodejní formulář. Trigger
   for requests to start selling an existing or new product, configure payment
   methods, installments, subscriptions, buyer fields, an order bump, upsell,
-  thank-you page, or post-purchase actions as part of a new form. Do not use
-  for editing an existing form, issuing a manual invoice, merely embedding a
-  form, or troubleshooting an already-created checkout.
+  thank-you page, or post-purchase actions as part of a new form. Also use it
+  to configure installment conditions on an action of an existing form.
+  General form updates, manual invoices, embeds, and checkout troubleshooting
+  are outside this workflow.
 ---
 
 # Create a FAPI sales form
@@ -25,11 +26,12 @@ Use this skill for:
 * Creating a new one-time, installment, or recurring sales form.
 * Reusing an existing product or creating a missing product when the request contains enough product data.
 * Configuring products, payments, currencies, billing fields, order bumps, upsells, discounts, thank-you URLs, and supported automations.
+* Configuring installment conditions for actions on an existing sales form.
 * Producing the shortest correct path to a first order while honoring explicit advanced requirements.
 
 Do not use this skill for:
 
-* Updating, deleting, archiving, duplicating, or reactivating an existing form.
+* General updates, deletion, archiving, duplication, or reactivation of an existing form.
 * Creating a manual invoice without a sales form.
 * Styling with custom CSS, obtaining embed code, or running a live checkout test as the primary task.
 * Inventing legal text, consent wording, prices, URLs, or entity IDs.
@@ -291,6 +293,8 @@ Use payment events for fulfillment that must follow successful payment:
 * `item-paid-with-code` for a product-code family.
 
 Use `ordered` only when fulfillment may occur before payment. Configure an action only when every required ID or URL is verified.
+
+Use the [installment-action recipe](references/scenario-recipes.md#installment-conditions-for-actions) for action conditions. For an existing form, start with its `forms_show` step.
 
 For e-books attached directly to a product, use the product skill's native download workflow and existing paid-email placeholders. Do not add a duplicate sending action or block form creation for a missing upload/external URL. Current product MCP cannot upload/list those files; give Prodej → Produkty → úprava produktu as the manual upload step and do not claim delivery has been tested.
 

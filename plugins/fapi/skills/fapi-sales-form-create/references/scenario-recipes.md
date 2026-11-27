@@ -86,6 +86,89 @@ The buyer purchases one offer but may divide the price into a fixed number of in
 
 Do not also enable recurring billing unless the user's business model genuinely requires both. The account's invoice settings determine the installment period.
 
+### Installment conditions for actions
+
+For a welcome email sent by a particular action, resolve an owned custom template with `message_templates_show`. To create one, first read `notification_reference_show`, then call `message_templates_create` with `event: "custom"` and use its `structuredContent.message_template_id`.
+
+Set the desired payment event and put the condition on each action in `triggers[].metadata.conditions.trigger_repayments`. Use `[1]` for the first installment, `[2, 3]` for the second and third, or `["none_repayments"]` for invoices without an installment number. On a form that offers one-time payments and installments, use two separately conditioned actions to send the same email in both cases.
+
+#### Create a form with an email after the first installment
+
+Call `forms_create` once you have resolved the offer and the dependencies. Replace the example product and template IDs with verified IDs.
+
+```json
+{
+  "name": "Objednávka kurzu na splátky",
+  "items": [
+    {
+      "item_template_id": 321,
+      "required": true
+    }
+  ],
+  "allow_repayments": true,
+  "repayment_counts": [
+    3
+  ],
+  "settings": {
+    "redirect_to_order_status_page_if_error": true
+  },
+  "triggers": [
+    {
+      "event": "paid",
+      "action": "send-email-to-client",
+      "message_template_id": 456,
+      "metadata": {
+        "conditions": {
+          "trigger_repayments": [
+            1
+          ]
+        }
+      }
+    }
+  ]
+}
+```
+
+#### Add the one-time payment to an existing form
+
+Call `forms_show` with the verified form ID before editing the actions. `forms_update` replaces the entire `triggers` list when you supply it. Use the writable fields for every action you need to preserve, including its metadata. Map returned `message_template` and `item_template` IDs to `message_template_id` and `item_template_id` when they apply. Make sure every retained action can be represented in the current write schema before sending the replacement.
+
+The example adds a second action to a form whose only stored action is the first-installment email. Replace both example IDs with verified IDs.
+
+```json
+{
+  "id": 123,
+  "triggers": [
+    {
+      "event": "paid",
+      "action": "send-email-to-client",
+      "message_template_id": 456,
+      "metadata": {
+        "conditions": {
+          "trigger_repayments": [
+            1
+          ]
+        }
+      }
+    },
+    {
+      "event": "paid",
+      "action": "send-email-to-client",
+      "message_template_id": 456,
+      "metadata": {
+        "conditions": {
+          "trigger_repayments": [
+            "none_repayments"
+          ]
+        }
+      }
+    }
+  ]
+}
+```
+
+After either write, call `forms_show` with the form ID. In `structuredContent.form.triggers` verify the event, action, template and exact `metadata.conditions.trigger_repayments` values. For an update, also verify that the other actions were preserved.
+
 ## 4. Indefinite subscription
 
 ### Resolve
